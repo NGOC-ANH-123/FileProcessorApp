@@ -12,31 +12,41 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
         java-version: [11]
-    
+
     runs-on: ${{ matrix.os }}
-    
+
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
-      
+        uses: actions/checkout@v4 # Nên nâng cấp luôn lên v4
+
       - name: Set up JDK ${{ matrix.java-version }}
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4 # Nên nâng cấp luôn lên v4
         with:
           java-version: ${{ matrix.java-version }}
           distribution: 'temurin'
-      
+
       - name: Clean and compile
         run: mvn clean compile
-      
+
       - name: Run tests
         run: mvn test
-      
+
       - name: Package JAR
         run: mvn package -DskipTests=true
-      
+
+      # ✅ ĐÃ SỬA: Nâng cấp lên v4 cho upload-artifact
       - name: Upload JAR artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: FileProcessorApp-${{ matrix.os }}
           path: target/*.jar
+          retention-days: 7
+
+      # ✅ ĐÃ SỬA: Nâng cấp lên v4 cho upload-artifact (báo cáo test)
+      - name: Upload test reports
+        if: always() # Vẫn giữ điều kiện này
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports-${{ matrix.os }}
+          path: target/surefire-reports/
           retention-days: 7
