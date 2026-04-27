@@ -1,0 +1,42 @@
+name: Multi-OS Test with Matrix Strategy
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  test-on-multiple-os:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        java-version: [11]
+    
+    runs-on: ${{ matrix.os }}
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      
+      - name: Set up JDK ${{ matrix.java-version }}
+        uses: actions/setup-java@v3
+        with:
+          java-version: ${{ matrix.java-version }}
+          distribution: 'temurin'
+      
+      - name: Clean and compile
+        run: mvn clean compile
+      
+      - name: Run tests
+        run: mvn test
+      
+      - name: Package JAR
+        run: mvn package -DskipTests=true
+      
+      - name: Upload JAR artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: FileProcessorApp-${{ matrix.os }}
+          path: target/*.jar
+          retention-days: 7
